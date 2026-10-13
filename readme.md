@@ -1,101 +1,78 @@
-# Express Node MongoDb Application
-This project is an Express.js application integrated with MongoDB, providing a simple structure for user authentication, admin management, and course management. The application includes middleware for both admin and user authentication and supports several routes for different functionalities.
+# Course Management API
 
-# Features
-- User Authentication: Middleware to authenticate users.
-- Admin Management: Middleware to manage admin functionalities.
-- Course Management: Routes to handle course creation, listing, and purchasing.
-- MongoDB Integration: MongoDB used for data storage with Mongoose ODM.
-# Prerequisites
-Node.js
-MongoDB
-npm (Node Package Manager)
+**A compact Express and MongoDB exercise for learning routes, middleware, and data relationships.**
 
+The API separates administrator and user workflows. Administrators can create and list courses; users can register, browse courses, and associate purchased courses with their account.
 
+## Why this project
 
-# Install dependencies
-```
+A course catalog is a practical way to study how request handling, authentication middleware, and database models fit together. This repository keeps those responsibilities in a small number of files so the flow is easy to trace.
 
+## Implemented routes
+
+| Method | Path | Responsibility |
+| --- | --- | --- |
+| POST | `/admin/signup` | Create an administrator |
+| POST | `/admin/courses` | Create a course through admin middleware |
+| GET | `/admin/courses` | List courses through admin middleware |
+| POST | `/user/signup` | Create a user |
+| GET | `/user/courses` | List courses |
+| POST | `/user/courses/:courseId` | Add a course to a user's purchases |
+| GET | `/user/purchasedCourses` | Return a user's purchased courses |
+
+## Local setup
+
+Download and extract the repository. Use Node.js, npm, and a MongoDB instance that you control.
+
+Before running, review these source-level setup issues:
+
+- The connection string is hard-coded in `db/index.js`; replace it with your own local development configuration. Do not rely on the committed connection details.
+- `router/admin.js` imports `../middleware/Admin`, while the tracked filename is `middleware/admin.js`. Correct the casing on case-sensitive filesystems.
+- `index.js` imports `body-parser`, but it is not a direct dependency in `package.json`. Declare the dependency or use the existing `express.json()` middleware consistently when repairing the setup.
+
+The declared start command is:
+
+```bash
 npm install
-```
-# Set up MongoDB
-
-Ensure MongoDB is installed and running.
-Create a MongoDB database named genai.
-Update the MongoDB connection string in the db.js file if necessary.
-# Run the application
-
-```
-node index.js
+npm start
 ```
 
+The server listens on `http://localhost:3001`.
+
+## Example request
+
+Once the local setup is configured:
+
+```bash
+curl http://localhost:3001/user/courses
 ```
 
-/db
-  - user.js
-  - course.js
-/middleware
-  - user.js
-  - admin.js
-/router
-  - user.js
-  - admin.js
-index.js
-db.js
-Middleware
-```
-# User Middleware
-Ensures that the user is authenticated based on headers.
+The response contains a `courses` array from MongoDB. Course creation and purchase requests require the corresponding authentication middleware to accept the request.
 
-File: /middleware/user.js
+## Architecture
 
-# Admin Middleware
-Ensures that the admin is authenticated based on headers.
-
-File: /middleware/admin.js
-
-Routes
-User Routes
-File: /router/user.js
-
-GET /courses: List all courses.
-POST /signup: Sign up a new user.
-# Admin Routes
-File: /router/admin.js
-
-GET /admin/courses: Admin route to list all courses.
-POST /admin/courses: Admin route to create a new course.
-GET /admin/courses/
-: Admin route to get a specific course by ID.
-POST /admin/    purchasecourse: Route to purchase a course.
-Models
-# User Model
-File: db/user.js
-
-# Course Model
-File: db/course.js
-
-# Database Connection
-MongoDB Connection
-File: db.js
-
-# Running the Application
-Start the server by running the following command:
-
-```
-node index.js
-
+```mermaid
+flowchart LR
+  Request[HTTP request] --> Express[Express app]
+  Express --> Admin[Admin router]
+  Express --> User[User router]
+  Admin --> Middleware[Authentication middleware]
+  User --> Middleware
+  Middleware --> Models[Mongoose models]
+  Models --> MongoDB[(MongoDB)]
 ```
 
-The application will be available at http://localhost:3000.
+## Source guide
 
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
+| Path | Purpose |
+| --- | --- |
+| [index.js](index.js) | App setup and port |
+| [router](router) | Admin and user handlers |
+| [middleware](middleware) | Header-based authentication checks |
+| [db/index.js](db/index.js) | Connection and Admin, User, Course schemas |
 
-This README provides a structured overview of the project, including setup instructions, directory structure, middleware, routes, and models. Adjust the paths and other details as per your actual project structure.
+## Current scope
 
+This is a learning implementation. Passwords are stored as plain strings, authentication is based on request headers, and a purchase records a database association rather than processing a payment. The test script is a placeholder. These boundaries need redesign before deploying a real account or commerce service.
 
-
-
-
-
+Package metadata declares ISC; the previous README mentioned MIT, but no separate license file is present to resolve that inconsistency.
